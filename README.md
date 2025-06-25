@@ -1,1 +1,3 @@
-# Vulkan_01
+# Vulkan学习过程
+## 这是一个学习vulkan的学习过程记录
+跟随https://vulkan-tutorial.com 学习
