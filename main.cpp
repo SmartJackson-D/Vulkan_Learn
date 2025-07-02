@@ -83,6 +83,7 @@ private:
 		createInstance();
 		setupDebugMessenger();
 		pickPhysicalDevice();
+		createLogicalDevice();
 	}
 
 	void mainLoop()
@@ -96,6 +97,9 @@ private:
 
 	void cleanup()
 	{
+		//清除逻辑设备
+		vkDestroyDevice(device, nullptr);
+
 		//清除消息
 		if (enableValidationLayers) {
 			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
@@ -110,6 +114,7 @@ private:
 		//结束GLFW自身相关
 		glfwTerminate();
 	}
+
 private:
 	void createInstance()
 	{
@@ -167,8 +172,6 @@ private:
 
 	void pickPhysicalDevice()
 	{
-		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-		
 		//列出所有可用物理设备
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -195,32 +198,45 @@ private:
 			throw std::runtime_error("failed to find a suitable GPU!");
 	}
 
-	//寻找物理设备里面的队列
-	QueueFamilyIndices findQueueFamily(VkPhysicalDevice device)
+	void createLogicalDevice()
 	{
-		//列出该设备对应的所有队列
-		QueueFamilyIndices indice;
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+		//指定队列族
+		QueueFamilyIndices indices = findQueueFamily(physicalDevice);
 
-		std::vector<VkQueueFamilyProperties> queueFamily(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamily.data());
+		VkDeviceQueueCreateInfo queueCreateInfo{};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+		queueCreateInfo.queueCount = 1;
+		float queuePriority = 1.0f;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
 
-		//找所需的队列
-		int i = 0;
-		for (const auto& queue : queueFamily)
+		//指定使用物理设备哪些功能
+		VkPhysicalDeviceFeatures deviceFeatures{};
+
+		//创建逻辑设备信息
+		VkDeviceCreateInfo deviceCreateInfo{};
+		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+		deviceCreateInfo.queueCreateInfoCount = 1;
+
+		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+
+		deviceCreateInfo.enabledExtensionCount = 0;
+		if (enableValidationLayers)
 		{
-			if (queue.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-			{
-				indice.graphicsFamily = i;
-			}
-			if (indice.isComplete())
-				break;
-			i++;
-
+			deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+			deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
 		}
+		else
+		{
+			deviceCreateInfo.enabledLayerCount = 0;
+		}
+		//创建逻辑设备
+		if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) != VK_SUCCESS)
+			throw std::runtime_error("failed to create logical device!");
 
-		return indice;
+		//找回队列句柄
+		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 	}
 
 private:
@@ -326,24 +342,56 @@ private:
 		return VK_FALSE;
 	}
 
-	//检查设备是否符合需求
+	//检查物理设备是否符合需求
 	bool isDeviceSuitable(VkPhysicalDevice device) {
 		VkPhysicalDeviceProperties  deviceProperties;
 		VkPhysicalDeviceFeatures	deviceFeatures;
 		vkGetPhysicalDeviceProperties(device, &deviceProperties);
 		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 		
+		//检查物理设备的队列
 		QueueFamilyIndices indice=findQueueFamily(device);
 
 		return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
 			deviceFeatures.geometryShader && indice.isComplete();
 	}
 
+	//寻找物理设备里面的队列
+	QueueFamilyIndices findQueueFamily(VkPhysicalDevice device)
+	{
+		//列出该设备对应的所有队列
+		QueueFamilyIndices indice;
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamily(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamily.data());
+
+		//找所需的队列
+		int i = 0;
+		for (const auto& queue : queueFamily)
+		{
+			if (queue.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			{
+				indice.graphicsFamily = i;
+			}
+			if (indice.isComplete())
+				break;
+			i++;
+
+		}
+
+		return indice;
+	}
 
 private:
 	GLFWwindow* window = nullptr;
-	VkInstance instance;
-	VkDebugUtilsMessengerEXT debugMessenger;
+	VkInstance instance = VK_NULL_HANDLE;
+	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;   //物理设备
+	VkDevice device = VK_NULL_HANDLE;					//逻辑设备
+	VkQueue  graphicsQueue = VK_NULL_HANDLE;			//队列句柄
 };
 
 int main()
