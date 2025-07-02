@@ -6,6 +6,7 @@
 #include<cstdlib>
 #include<vector>
 #include<string.h>
+#include<optional>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -38,6 +39,17 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 		func(instance, debugMessenger, pAllocator);
 	}
 }
+
+//物理设备的队列结构体
+struct QueueFamilyIndices
+{
+	std::optional<uint32_t> graphicsFamily;
+
+	bool isComplete()
+	{
+		return graphicsFamily.has_value();
+	}
+};
 
 class HelloTriangleApplication{
 public:
@@ -156,7 +168,8 @@ private:
 	void pickPhysicalDevice()
 	{
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
+		
+		//列出所有可用物理设备
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -181,6 +194,35 @@ private:
 		if (physicalDevice == VK_NULL_HANDLE)
 			throw std::runtime_error("failed to find a suitable GPU!");
 	}
+
+	//寻找物理设备里面的队列
+	QueueFamilyIndices findQueueFamily(VkPhysicalDevice device)
+	{
+		//列出该设备对应的所有队列
+		QueueFamilyIndices indice;
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamily(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamily.data());
+
+		//找所需的队列
+		int i = 0;
+		for (const auto& queue : queueFamily)
+		{
+			if (queue.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			{
+				indice.graphicsFamily = i;
+			}
+			if (indice.isComplete())
+				break;
+			i++;
+
+		}
+
+		return indice;
+	}
+
 private:
 	//填充消息结构体信息
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
@@ -291,8 +333,10 @@ private:
 		vkGetPhysicalDeviceProperties(device, &deviceProperties);
 		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 		
+		QueueFamilyIndices indice=findQueueFamily(device);
+
 		return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
-			deviceFeatures.geometryShader;
+			deviceFeatures.geometryShader && indice.isComplete();
 	}
 
 
