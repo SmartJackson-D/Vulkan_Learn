@@ -395,8 +395,9 @@ private:
 	VkQueue  graphicsQueue = VK_NULL_HANDLE;			//╤сап╬Д╠З
 };
 
-int main()
+int main2()
 {
+	std::cout << "т╜╟Ф" << std::endl;
 	HelloTriangleApplication app;
 
 	try {
@@ -408,4 +409,5 @@ int main()
 	}
 
 	return EXIT_SUCCESS;
+	
 }
