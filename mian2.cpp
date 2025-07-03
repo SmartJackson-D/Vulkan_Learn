@@ -18,9 +18,9 @@ const std::vector<const char*> validationLayers = {
 
 //根据是否启动debug模式决定是否启用验证层
 #ifdef NDEBUG
-	const bool enableValidationLayers = false;
+const bool enableValidationLayers = false;
 #else
-	const bool enableValidationLayers = true;
+const bool enableValidationLayers = true;
 #endif // NDEBUG
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
@@ -51,7 +51,7 @@ struct QueueFamilyIndices
 	}
 };
 
-class HelloTriangleApplication{
+class HelloTriangleApplication {
 public:
 	void run()
 	{
@@ -74,11 +74,11 @@ private:
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 		//创建窗口
-		window = glfwCreateWindow(WIDTH,HEIGHT,"Vulkan",nullptr,nullptr);
+		window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 
 	}
 
-	void initVulcan() 
+	void initVulcan()
 	{
 		createInstance();
 		setupDebugMessenger();
@@ -167,7 +167,7 @@ private:
 		{
 			throw std::runtime_error("failed to create instance!");
 		}
-		
+
 	}
 
 	void pickPhysicalDevice()
@@ -183,15 +183,15 @@ private:
 
 		std::vector<VkPhysicalDevice> devices(deviceCount);
 		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-		
+
 		//检查是否符合需求
-		for (const auto& device:devices)
+		for (const auto& device : devices)
 		{
 			if (isDeviceSuitable(device))
 			{
 				physicalDevice = device;
 				break;
-			}	
+			}
 		}
 
 		if (physicalDevice == VK_NULL_HANDLE)
@@ -287,7 +287,7 @@ private:
 					break;
 				}
 			}
-			
+
 			if (!layerFound)
 				return false;
 		}
@@ -296,7 +296,7 @@ private:
 	}
 
 	//获取所需的拓展
-	std::vector<const char*> getRequiredExtensions() 
+	std::vector<const char*> getRequiredExtensions()
 	{
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
@@ -318,16 +318,16 @@ private:
 		void* pUserData) {
 		switch (messageSeverity)
 		{
-		/*case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-			std::cout << "Diagnostic message: " << std::endl
-				<<pCallbackData->pMessage << std::endl;
-			break;*/
+			/*case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+				std::cout << "Diagnostic message: " << std::endl
+					<<pCallbackData->pMessage << std::endl;
+				break;*/
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
 			std::cout << "Informational message like the creation of a resource: " << std::endl
 				<< pCallbackData->pMessage << std::endl;
 			break;
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-			std::cout << "Message about behavior that is not necessarily an error,"<< 
+			std::cout << "Message about behavior that is not necessarily an error," <<
 				"but very likely a bug in your application: " << std::endl
 				<< pCallbackData->pMessage << std::endl;
 			break;
@@ -348,9 +348,9 @@ private:
 		VkPhysicalDeviceFeatures	deviceFeatures;
 		vkGetPhysicalDeviceProperties(device, &deviceProperties);
 		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-		
+
 		//检查物理设备的队列
-		QueueFamilyIndices indice=findQueueFamily(device);
+		QueueFamilyIndices indice = findQueueFamily(device);
 
 		return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
 			deviceFeatures.geometryShader && indice.isComplete();
