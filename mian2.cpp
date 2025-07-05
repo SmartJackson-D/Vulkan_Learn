@@ -1,5 +1,8 @@
+#define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 #include<iostream>
 #include<stdexcept>
@@ -396,7 +399,7 @@ private:
 	VkQueue  graphicsQueue = VK_NULL_HANDLE;			//队列句柄
 };
 
-int main()
+int main2()
 {
 	std::cout << "测试使用vulkan原生API生成窗口表面" << std::endl;
 	HelloTriangleApplication app;

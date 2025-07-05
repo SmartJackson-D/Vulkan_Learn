@@ -82,6 +82,7 @@ private:
 	{
 		createInstance();
 		setupDebugMessenger();
+		createSurface();
 		pickPhysicalDevice();
 		createLogicalDevice();
 	}
@@ -116,6 +117,7 @@ private:
 	}
 
 private:
+	//创建实例
 	void createInstance()
 	{
 		//检查验证层 开启检验但是检验层可能不存在
@@ -170,6 +172,7 @@ private:
 		
 	}
 
+	//选择物理设备
 	void pickPhysicalDevice()
 	{
 		//列出所有可用物理设备
@@ -198,6 +201,7 @@ private:
 			throw std::runtime_error("failed to find a suitable GPU!");
 	}
 
+	//创建逻辑设备
 	void createLogicalDevice()
 	{
 		//指定队列族
@@ -239,6 +243,12 @@ private:
 		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 	}
 
+	//创建窗口表面
+	void createSurface()
+	{
+		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+			throw std::runtime_error("failed to create window surface!");
+	}
 private:
 	//填充消息结构体信息
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
@@ -395,7 +405,7 @@ private:
 	VkQueue  graphicsQueue = VK_NULL_HANDLE;			//队列句柄
 };
 
-int main2()
+int main()
 {
 	std::cout << "原版" << std::endl;
 	HelloTriangleApplication app;
